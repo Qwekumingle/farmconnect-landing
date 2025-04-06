@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+
+contract FarmConnect {
+    string public greeting = "Hello FarmConnect!";
+    address public owner;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function updateGreeting(string memory _greeting) public {
+        require(msg.sender == owner, "Only owner can update");
+        greeting = _greeting;
+    }
+}

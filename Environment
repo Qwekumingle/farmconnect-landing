@@ -1,0 +1,2 @@
+# Rename to .env.local after filling
+NEXT_PUBLIC_SEPOLIA_RPC=https://sepolia.infura.io/v3/YOUR_INFURA_KEY
