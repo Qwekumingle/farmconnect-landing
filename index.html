@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FarmConnect - Direct Farm to Consumer with Recycling Integration</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@web3auth/web3auth@1.0.0/dist/web3auth.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@web3auth/openlogin-adapter@1.0.0/dist/openloginAdapter.umd.min.js"></script>
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
     <style>
         :root {
             --primary: #3b7d4a;
@@ -359,6 +362,80 @@
             color: var(--dark);
         }
 
+        /* Web3Auth Modal Styles */
+        .web3auth-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .web3auth-modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--dark);
+        }
+
+        .web3auth-providers {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .web3auth-provider-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background-color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .web3auth-provider-btn:hover {
+            background-color: #f5f5f5;
+        }
+
+        .user-profile {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .user-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
         @media (max-width: 768px) {
             .nav-links {
                 position: fixed;
@@ -406,8 +483,13 @@
                 <li><a href="#features">Features</a></li>
                 <li><a href="#how-it-works">How It Works</a></li>
                 <li><a href="#testimonials">Testimonials</a></li>
-                <li><a href="#" class="btn btn-secondary">Login</a></li>
-                <li><a href="#" class="btn">Sign Up</a></li>
+                <li id="authButtonContainer"><a href="#" class="btn btn-secondary" id="loginButton">Login</a></li>
+                <li><a href="#" class="btn" id="signupButton">Sign Up</a></li>
+                <li class="user-profile" id="userProfile">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <span id="userName">User</span>
+                    <a href="#" id="logoutButton" style="margin-left: 10px;">Logout</a>
+                </li>
             </ul>
             <button class="mobile-menu-btn" id="mobileMenuBtn">
                 <i class="fas fa-bars"></i>
@@ -415,14 +497,37 @@
         </nav>
     </header>
 
+    <!-- Web3Auth Modal -->
+    <div id="web3authModal" class="web3auth-modal">
+        <div class="web3auth-modal-content">
+            <span class="close-modal" id="closeModal">&times;</span>
+            <h2>Connect Wallet</h2>
+            <p>Choose your preferred login method:</p>
+            <div class="web3auth-providers">
+                <button class="web3auth-provider-btn" id="googleLogin">
+                    <i class="fab fa-google"></i> Continue with Google
+                </button>
+                <button class="web3auth-provider-btn" id="facebookLogin">
+                    <i class="fab fa-facebook-f"></i> Continue with Facebook
+                </button>
+                <button class="web3auth-provider-btn" id="twitterLogin">
+                    <i class="fab fa-twitter"></i> Continue with Twitter
+                </button>
+                <button class="web3auth-provider-btn" id="emailLogin">
+                    <i class="fas fa-envelope"></i> Continue with Email
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Hero Section -->
     <section class="hero">
         <div class="hero-content">
             <h1>Connect Farmers with Consumers</h1>
             <p>A revolutionary platform that empowers farmers, supports local businesses, and promotes environmental sustainability through innovative recycling integration.</p>
             <div class="hero-buttons">
-                <a href="#" class="btn">Join as a Farmer</a>
-                <a href="#" class="btn btn-secondary">Shop Local Produce</a>
+                <a href="#" class="btn" id="heroJoinFarmer">Join as a Farmer</a>
+                <a href="#" class="btn btn-secondary" id="heroShopProduce">Shop Local Produce</a>
             </div>
         </div>
     </section>
@@ -530,7 +635,7 @@
     <section class="cta">
         <h2>Ready to Join the Revolution?</h2>
         <p>Be part of a sustainable future where farmers thrive, communities prosper, and the environment benefits.</p>
-        <a href="#" class="btn btn-secondary">Get Started Today</a>
+        <a href="#" class="btn btn-secondary" id="ctaGetStarted">Get Started Today</a>
     </section>
 
     <!-- Footer -->
@@ -548,88 +653,4 @@
             </div>
             <div class="footer-column">
                 <h3>For Farmers</h3>
-                <ul class="footer-links">
-                    <li><a href="#">How It Works</a></li>
-                    <li><a href="#">Pricing</a></li>
-                    <li><a href="#">Success Stories</a></li>
-                    <li><a href="#">Resources</a></li>
-                </ul>
-            </div>
-            <div class="footer-column">
-                <h3>For Consumers</h3>
-                <ul class="footer-links">
-                    <li><a href="#">Find Local Farms</a></li>
-                    <li><a href="#">Seasonal Products</a></li>
-                    <li><a href="#">Recycling Program</a></li>
-                    <li><a href="#">Rewards</a></li>
-                </ul>
-            </div>
-            <div class="footer-column">
-                <h3>Contact Us</h3>
-                <ul class="footer-links">
-                    <li><a href="#">Support</a></li>
-                    <li><a href="#">Partnerships</a></li>
-                    <li><a href="#">Careers</a></li>
-                    <li><a href="#">Press</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="copyright">
-            <p>&copy; 2025 FarmConnect. All rights reserved.</p>
-        </div>
-    </footer>
-
-    <script>
-        // Mobile menu toggle
-        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-        const navLinks = document.getElementById('navLinks');
-        
-        mobileMenuBtn.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-            
-            // Change icon based on menu state
-            const icon = mobileMenuBtn.querySelector('i');
-            if (navLinks.classList.contains('active')) {
-                icon.classList.remove('fa-bars');
-                icon.classList.add('fa-times');
-            } else {
-                icon.classList.remove('fa-times');
-                icon.classList.add('fa-bars');
-            }
-        });
-        
-        // Close menu when clicking a link
-        const links = navLinks.querySelectorAll('a');
-        links.forEach(link => {
-            link.addEventListener('click', () => {
-                if (navLinks.classList.contains('active')) {
-                    navLinks.classList.remove('active');
-                    const icon = mobileMenuBtn.querySelector('i');
-                    icon.classList.remove('fa-times');
-                    icon.classList.add('fa-bars');
-                }
-            });
-        });
-        
-        // Smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                if (this.getAttribute('href') !== '#') {
-                    e.preventDefault();
-                    
-                    const targetId = this.getAttribute('href');
-                    if (targetId === '#') return;
-                    
-                    const targetElement = document.querySelector(targetId);
-                    if (targetElement) {
-                        window.scrollTo({
-                            top: targetElement.offsetTop - 70,
-                            behavior: 'smooth'
-                        });
-                    }
-                }
-            });
-        });
-    </script>
-</body>
-</html>
+                <ul c
